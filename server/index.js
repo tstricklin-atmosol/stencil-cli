@@ -52,10 +52,10 @@ module.exports = (options, callback) => {
 };
 
 internals.startThemeEditor = (options, callback) => {
-    const themeEditorHost = 'http://localhost:' + options.stencilEditorPort;
+    const themeEditorHost = 'http://0.0.0.0:' + options.stencilEditorPort;
     const stencilEditorConfig = {
         connections: [{
-            host: 'localhost',
+            host: '0.0.0.0',
             port: options.stencilEditorPort,
         }],
         plugins: {
