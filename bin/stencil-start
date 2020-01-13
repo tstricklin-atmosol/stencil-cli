@@ -40,6 +40,7 @@ Program
     .option('-e, --theme-editor', 'Run Theme Editor server')
     .option('-n, --no-cache', 'Turns off caching for API resource data per storefront page. The cache lasts for 5 minutes before automatically refreshing.')
     .option('--theme-editor-port [port]', 'Run the Theme Editor on a different port')
+    .option('--host [host]', 'Set the host. Defaults to localhost.')
     .parse(process.argv);
 
 
@@ -82,6 +83,7 @@ try {
 }
 
 browserSyncPort = dotStencilFile.port;
+host = Program.host || 'localhost';
 stencilServerPort = ++dotStencilFile.port;
 
 if (!(dotStencilFile.normalStoreUrl) || !(dotStencilFile.customLayouts)) {
@@ -157,6 +159,7 @@ function startServer() {
         stencilEditorPort: Program.themeEditorPort || 8181,
         useCache: Program.cache,
         themePath: themePath,
+        host: host,
     };
 
     Server(params, function (err) {
@@ -223,6 +226,7 @@ function startServer() {
         Bs.init({
             open: !!Program.open,
             port: browserSyncPort,
+            host: host,
             files: watchFiles.map(val => Path.join(themePath, val)),
             watchOptions: {
                 ignoreInitial: true,

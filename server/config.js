@@ -5,7 +5,7 @@ const Confidence = require('confidence');
 const config = {
     $meta: 'Config file',
     server: {
-        host: 'localhost',
+        host: '0.0.0.0',
         port: 3000,
     },
     good: {

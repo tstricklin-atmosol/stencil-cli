@@ -53,9 +53,10 @@ module.exports = (options, callback) => {
 
 internals.startThemeEditor = (options, callback) => {
     const themeEditorHost = 'http://localhost:' + options.stencilEditorPort;
+    const themeEditorExternalHost = 'http://' + options.host + ':' + options.stencilEditorPort;
     const stencilEditorConfig = {
         connections: [{
-            host: 'localhost',
+            host: '0.0.0.0',
             port: options.stencilEditorPort,
         }],
         plugins: {
@@ -66,6 +67,7 @@ internals.startThemeEditor = (options, callback) => {
                 themeEditorHost: themeEditorHost,
                 themeServer: options.themeServer,
                 themePath: options.themePath,
+                host: options.host,
             },
         },
     };
@@ -77,6 +79,7 @@ internals.startThemeEditor = (options, callback) => {
 
         server.start(() => {
             console.log('Theme Editor:', themeEditorHost.cyan);
+            console.log('Theme Editor (External):', themeEditorExternalHost.cyan);
             return callback();
         });
     });
