@@ -153,7 +153,10 @@ handlers.onRequest = (request, reply) => {
     // Only add the SDK if stencilEditor is a query parameter or the cookie preview_config_id is set
     if (request.query.stencilEditor || (request.headers.cookie || '').indexOf('stencil_preview') !== -1) {
         request.app.decorators.push(content => {
-            const scriptTags = `<script src="//${internals.options.host}:${internals.options.stencilEditorPort}/dist/stencil-preview-sdk.js"></script>\n`;
+            let scriptTags = `<script src="//${internals.options.editorHost}/dist/stencil-preview-sdk.js"></script>\n`;;
+            if (internals.options.editorHost === internals.options.host) {
+                scriptTags = `<script src="//${internals.options.editorHost}:${internals.options.stencilEditorPort}/dist/stencil-preview-sdk.js"></script>\n`;
+            }
             return content.replace(new RegExp('</body>'), `${scriptTags}\n</body>`);
         });
     }
@@ -168,8 +171,12 @@ handlers.onRequest = (request, reply) => {
  * @param reply
  */
 handlers.home = (request, reply) => {
-    const shopPath = `http://${internals.options.host}:${internals.options.stencilServerPort}`;
-    const cdnPath = `//${internals.options.host}:${internals.options.stencilEditorPort}`;
+    let shopPath = `http://${internals.options.editorHost}`;
+    let cdnPath = `//${internals.options.editorHost}`;
+    if (internals.options.editorHost === internals.options.host) {
+        shopPath = `http://${internals.options.editorHost}:${internals.options.stencilServerPort}`;
+        cdnPath = `//${internals.options.editorHost}:${internals.options.stencilEditorPort}`;
+    }
 
     reply.view('stencil-editor', {
         shopPath,

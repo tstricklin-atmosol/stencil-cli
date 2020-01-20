@@ -53,7 +53,7 @@ module.exports = (options, callback) => {
 
 internals.startThemeEditor = (options, callback) => {
     const themeEditorHost = 'http://localhost:' + options.stencilEditorPort;
-    const themeEditorExternalHost = 'http://' + options.host + ':' + options.stencilEditorPort;
+    const themeEditorExternalHost = 'http://' + options.editorHost + ':' + options.stencilEditorPort;
     const stencilEditorConfig = {
         connections: [{
             host: '0.0.0.0',
@@ -68,6 +68,7 @@ internals.startThemeEditor = (options, callback) => {
                 themeServer: options.themeServer,
                 themePath: options.themePath,
                 host: options.host,
+                editorHost: options.editorHost,
             },
         },
     };

@@ -29,6 +29,8 @@ var themeConfig;
 var configuration;
 var staplerUrl;
 var headers;
+var host;
+var editorHost;
 require('colors');
 
 Program
@@ -41,6 +43,7 @@ Program
     .option('-n, --no-cache', 'Turns off caching for API resource data per storefront page. The cache lasts for 5 minutes before automatically refreshing.')
     .option('--theme-editor-port [port]', 'Run the Theme Editor on a different port')
     .option('--host [host]', 'Set the host. Defaults to localhost.')
+    .option('--editor-host [host]', 'Set the theme editor host. Defaults to the host, which defaults to localhost.')
     .parse(process.argv);
 
 
@@ -84,6 +87,7 @@ try {
 
 browserSyncPort = dotStencilFile.port;
 host = Program.host || 'localhost';
+editorHost = Program.editorHost || host;
 stencilServerPort = ++dotStencilFile.port;
 
 if (!(dotStencilFile.normalStoreUrl) || !(dotStencilFile.customLayouts)) {
@@ -160,6 +164,7 @@ function startServer() {
         useCache: Program.cache,
         themePath: themePath,
         host: host,
+        editorHost: editorHost,
     };
 
     Server(params, function (err) {
