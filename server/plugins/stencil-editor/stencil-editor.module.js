@@ -171,10 +171,10 @@ handlers.onRequest = (request, reply) => {
  * @param reply
  */
 handlers.home = (request, reply) => {
-    let shopPath = `http://${internals.options.editorHost}`;
+    let shopPath = `http://${internals.options.host}`;
     let cdnPath = `//${internals.options.editorHost}`;
     if (internals.options.editorHost === internals.options.host) {
-        shopPath = `http://${internals.options.editorHost}:${internals.options.stencilServerPort}`;
+        shopPath = `http://${internals.options.host}:${internals.options.stencilServerPort}`;
         cdnPath = `//${internals.options.editorHost}:${internals.options.stencilEditorPort}`;
     }
 
