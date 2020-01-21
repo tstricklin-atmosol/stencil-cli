@@ -31,6 +31,7 @@ var staplerUrl;
 var headers;
 var host;
 var editorHost;
+var disableFileWatch;
 require('colors');
 
 Program
@@ -44,6 +45,7 @@ Program
     .option('--theme-editor-port [port]', 'Run the Theme Editor on a different port')
     .option('--host [host]', 'Set the host. Defaults to localhost.')
     .option('--editor-host [host]', 'Set the theme editor host. Defaults to the host, which defaults to localhost.')
+    .option('--disable-file-watch', 'Disables the file watch on Browsersync')
     .parse(process.argv);
 
 
@@ -96,6 +98,8 @@ if (!(dotStencilFile.normalStoreUrl) || !(dotStencilFile.customLayouts)) {
         ' $ stencil init'.cyan + ' again.'.red
     );
 }
+
+disableFileWatch = Program.disableFileWatch;
 
 headers = {
     'stencil-cli': Pkg.version
@@ -187,38 +191,40 @@ function startServer() {
         // Display Set up information
         console.log(startUpInformation());
 
-        // Watch sccs directory and automatically reload all css files if a file changes
-        Bs.watch(Path.join(themePath, 'assets/scss'), event => {
-            if (event === 'change') {
-                Bs.reload(`stencil/*.css`);
-            }
-        });
-
-        Bs.watch('config.json', (event) => {
-            if (event === 'change') {
-                try {
-                    configuration = themeConfig.getConfig();
-                } catch (e) {
-                    return console.error(e);
+        if (!disableFileWatch) {
+            // Watch sccs directory and automatically reload all css files if a file changes
+            Bs.watch(Path.join(themePath, 'assets/scss'), event => {
+                if (event === 'change') {
+                    Bs.reload(`stencil/*.css`);
                 }
+            });
 
-                Bs.reload();
-            }
-        });
+            Bs.watch('config.json', (event) => {
+                if (event === 'change') {
+                    try {
+                        configuration = themeConfig.getConfig();
+                    } catch (e) {
+                        return console.error(e);
+                    }
 
-        Bs.watch(templatePath, {ignoreInitial: true}, () => {
-            assembleTemplates(templatePath, (err, results) => {
-                if (err) {
-                    return console.error(err);
+                    Bs.reload();
                 }
+            });
 
-                try {
-                    new Cycles(results).detect();
-                } catch (e) {
-                    console.error(e);
-                }
-            })
-        });
+            Bs.watch(templatePath, {ignoreInitial: true}, () => {
+                assembleTemplates(templatePath, (err, results) => {
+                    if (err) {
+                        return console.error(err);
+                    }
+
+                    try {
+                        new Cycles(results).detect();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                })
+            });
+        }
 
         if (buildConfig.watchOptions && buildConfig.watchOptions.files) {
             watchFiles = buildConfig.watchOptions.files;
@@ -228,18 +234,29 @@ function startServer() {
             watchIgnored = buildConfig.watchOptions.ignored;
         }
 
-        Bs.init({
-            open: !!Program.open,
-            port: browserSyncPort,
-            host: host,
-            files: watchFiles.map(val => Path.join(themePath, val)),
-            watchOptions: {
-                ignoreInitial: true,
-                ignored: watchIgnored.map(val => Path.join(themePath, val)),
-            },
-            proxy: "localhost:" + stencilServerPort,
-            tunnel: !!Program.tunnel,
-        });
+        if (!disableFileWatch) {
+            Bs.init({
+                open: !!Program.open,
+                port: browserSyncPort,
+                host: host,
+                files: watchFiles.map(val => Path.join(themePath, val)),
+                watchOptions: {
+                    ignoreInitial: true,
+                    ignored: watchIgnored.map(val => Path.join(themePath, val)),
+                },
+                proxy: "localhost:" + stencilServerPort,
+                tunnel: !!Program.tunnel,
+            });
+        } else {
+            Bs.init({
+                open: !!Program.open,
+                port: browserSyncPort,
+                host: host,
+                files: [],
+                proxy: "localhost:" + stencilServerPort,
+                tunnel: !!Program.tunnel,
+            });
+        }
 
         // Handle manual reloading of browsers by typing 'rs';
         // Borrowed from https://github.com/remy/nodemon
