@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-var _ = require('lodash');
 var Bs = require('browser-sync').create();
 var Cycles = require('../lib/cycles');
 var recursiveRead = require('recursive-readdir');
@@ -29,6 +28,7 @@ var themeConfig;
 var configuration;
 var staplerUrl;
 var headers;
+let tunnel;
 var host;
 var editorHost;
 var disableFileWatch;
@@ -39,7 +39,7 @@ Program
     .option('-o, --open', 'Automatically open default browser')
     .option('-v, --variation [name]', 'Set which theme variation to use while developing')
     .option('-t, --test', 'Enable QA mode which will bundle all javascript for speed to test locally')
-    .option('--tunnel', 'Create a tunnel URL which points to your local server that anyone can use.')
+    .option('--tunnel [name]', 'Create a tunnel URL which points to your local server that anyone can use.')
     .option('-e, --theme-editor', 'Run Theme Editor server')
     .option('-n, --no-cache', 'Turns off caching for API resource data per storefront page. The cache lasts for 5 minutes before automatically refreshing.')
     .option('--theme-editor-port [port]', 'Run the Theme Editor on a different port')
@@ -102,7 +102,7 @@ if (!(dotStencilFile.normalStoreUrl) || !(dotStencilFile.customLayouts)) {
 disableFileWatch = Program.disableFileWatch;
 
 headers = {
-    'stencil-cli': Pkg.version
+    'stencil-cli': Pkg.version,
 };
 
 if (dotStencilFile.staplerUrl) {
@@ -141,12 +141,12 @@ Wreck.get(
             if (configuration.jspm && Program.test) {
                 bundleTask = JspmAssembler.assemble(
                     {
-                        bootstrap: configuration.jspm.bootstrap
+                        bootstrap: configuration.jspm.bootstrap,
                     },
                     themePath
                 );
 
-                bundleTask(function (result) {
+                bundleTask(function () {
                     return startServer();
                 });
             } else {
@@ -171,17 +171,16 @@ function startServer() {
         editorHost: editorHost,
     };
 
-    Server(params, function (err) {
+    Server(params, err => {
         var watchFiles = [
             '/assets',
             '/templates',
-            '/lang'
+            '/lang',
         ];
         var watchIgnored = [
             '/assets/scss',
-            '/assets/less',
             '/assets/css',
-            '/assets/jspm_packages'
+            '/assets/jspm_packages',
         ];
 
         if (err) {
@@ -195,7 +194,7 @@ function startServer() {
             // Watch sccs directory and automatically reload all css files if a file changes
             Bs.watch(Path.join(themePath, 'assets/scss'), event => {
                 if (event === 'change') {
-                    Bs.reload(`stencil/*.css`);
+                Bs.reload('*.css');
                 }
             });
 
@@ -234,6 +233,11 @@ function startServer() {
             watchIgnored = buildConfig.watchOptions.ignored;
         }
 
+        // check for tunnel argument
+        if (typeof Program.tunnel === 'undefined') { tunnel = false; }
+        else if (Program.tunnel === true)  { tunnel = true; }
+        else { tunnel = Program.tunnel; }
+	
         if (!disableFileWatch) {
             Bs.init({
                 open: !!Program.open,
@@ -245,7 +249,7 @@ function startServer() {
                     ignored: watchIgnored.map(val => Path.join(themePath, val)),
                 },
                 proxy: "localhost:" + stencilServerPort,
-                tunnel: !!Program.tunnel,
+            tunnel: tunnel,
             });
         } else {
             Bs.init({
@@ -254,7 +258,7 @@ function startServer() {
                 host: host,
                 files: [],
                 proxy: "localhost:" + stencilServerPort,
-                tunnel: !!Program.tunnel,
+                tunnel: tunnel,
             });
         }
 
@@ -278,37 +282,17 @@ function startServer() {
 }
 
 /**
- * Convenience function to parse Theme Config and set some default values if they aren't present
- *
- * @return object
- */
-function parseThemeConfig() {
-    var ret = {},
-        themeConfig;
-
-    themeConfig = ThemeConfig.getInstance(themePath, Program.variation);
-
-    try {
-        ret.config = themeConfig.getConfig();
-    } catch (e) {
-        return console.error(e);
-    }
-
-    return ret;
-}
-
-/**
  * Assembles all the needed templates and resolves their partials.
  * @param {string} templatePath
  * @param {function} callback
  */
 function assembleTemplates(templatePath, callback) {
-    recursiveRead(templatePath, ['!*.html'], function (err, files) {
+    recursiveRead(templatePath, ['!*.html'], (err, files) => {
         files = files.map(function (file) {
             return file.replace(templatePath + Path.sep, '').replace('.html', '');
         });
 
-        Async.map(files, templateAssembler.assemble.bind(null, templatePath), function (err, results) {
+        Async.map(files, templateAssembler.assemble.bind(null, templatePath), (err, results) => {
             if (err) {
                 callback(err);
             }
@@ -336,7 +320,7 @@ function fileExist(path) {
  * @return {string}
  */
 function startUpInformation() {
-    var information = '\n';
+    let information = '\n';
 
     information += '-----------------Startup Information-------------\n'.gray;
     information += '\n';
