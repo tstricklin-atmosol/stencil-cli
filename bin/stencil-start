@@ -248,7 +248,7 @@ function startServer() {
                     ignoreInitial: true,
                     ignored: watchIgnored.map(val => Path.join(themePath, val)),
                 },
-                proxy: "localhost:" + stencilServerPort,
+                proxy: host + ":" + stencilServerPort,
             tunnel: tunnel,
             });
         } else {
@@ -257,7 +257,7 @@ function startServer() {
                 port: browserSyncPort,
                 host: host,
                 files: [],
-                proxy: "localhost:" + stencilServerPort,
+                proxy: host + ":" + stencilServerPort,
                 tunnel: tunnel,
             });
         }
