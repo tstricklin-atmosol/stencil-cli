@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 require('colors');
-var stencilInit = require('../lib/stencil-init');
-var pkg = require('../package.json');
-var Program = require('commander');
-var JspmAssembler = require('../lib/jspm-assembler');
-var ThemeConfig = require('../lib/theme-config');
-var dotStencilFilePath = './.stencil';
-var versionCheck = require('../lib/version-check');
+const Program = require('commander');
+const _ = require('lodash');
+
+const StencilInit = require('../lib/stencil-init');
+const pkg = require('../package.json');
+const versionCheck = require('../lib/version-check');
 
 Program
     .version(pkg.version)
@@ -20,4 +19,7 @@ if (!versionCheck()) {
     return;
 }
 
-stencilInit(JspmAssembler, ThemeConfig, dotStencilFilePath, Program.url, Program.token, Program.port);
+const dotStencilFilePath = './.stencil';
+const cliOptions = _.pick(Program, ['url', 'token', 'port']);
+
+new StencilInit().run(dotStencilFilePath, cliOptions);

@@ -8,13 +8,6 @@ const config = {
         host: '0.0.0.0',
         port: 3000,
     },
-    good: {
-        opsInterval: 1000,
-        reporters: [{
-            reporter: require('good-console'),
-            args: [{log: '*', request: '*'}],
-        }],
-    },
 };
 
 const criteria = {
@@ -24,11 +17,9 @@ const criteria = {
 const store = new Confidence.Store(config);
 
 exports.get = function(key) {
-
     return store.get(key, criteria);
 };
 
 exports.meta = function(key) {
-
     return store.meta(key, criteria);
 };

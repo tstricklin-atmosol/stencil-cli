@@ -1,7 +1,7 @@
 'use strict';
 
 const Code = require('code');
-const Lab = require('lab');
+const Lab = require('@hapi/lab');
 const sinon = require('sinon');
 const RawResponse = require('./raw-response');
 const Utils = require('../../../lib/utils');
@@ -17,13 +17,14 @@ lab.describe('RawResponse', () => {
     };
 
     const statusCode = 200;
-    var request;
-    var response;
-    var reply;
+    let request;
+    let response;
+    let h;
 
-    lab.beforeEach(done => {
+    lab.beforeEach(() => {
         request = {
-            url: {path: '/'},
+            url: {},
+            path: '/',
             app: {themeConfig: {variationIndex: 1}},
         };
 
@@ -32,41 +33,36 @@ lab.describe('RawResponse', () => {
             header: sinon.spy(),
         };
 
-        reply = sinon.stub().returns(response);
-        done();
+        h = {
+            response: sinon.stub().returns(response),
+        };
     });
 
     lab.describe('respond()', () => {
-        it('should respond', done => {
-            var rawResponse = new RawResponse(data, headers, statusCode);
+        it('should respond', () => {
+            const rawResponse = new RawResponse(data, headers, statusCode);
 
-            rawResponse.respond(request, reply);
+            rawResponse.respond(request, h);
 
-            expect(reply.called).to.be.true();
-
-            done();
+            expect(h.response.called).to.be.true();
         });
 
-        it('should append checkout css if is the checkout page', done => {
-            request.url.path = '/checkout.php?blah=blah';
-            var rawResponse = new RawResponse(data, headers, statusCode);
+        it('should append checkout css if is the checkout page', () => {
+            request.path = '/checkout.php?blah=blah';
+            const rawResponse = new RawResponse(data, headers, statusCode);
 
-            rawResponse.respond(request, reply);
+            rawResponse.respond(request, h);
 
-            expect(reply.lastCall.args[0]).to.contain(`<link href="/stencil/${Utils.int2uuid(1)}/${Utils.int2uuid(2)}/css/checkout.css"`);
-
-            done();
+            expect(h.response.lastCall.args[0]).to.contain(`<link href="/stencil/${Utils.int2uuid(1)}/${Utils.int2uuid(2)}/css/checkout.css"`);
         });
 
-        it('should not append transfer-encoding header', done => {
-            var rawResponse = new RawResponse(data, headers, statusCode);
+        it('should not append transfer-encoding header', () => {
+            const rawResponse = new RawResponse(data, headers, statusCode);
 
-            rawResponse.respond(request, reply);
+            rawResponse.respond(request, h);
 
             expect(response.header.neverCalledWith('transfer-encoding')).to.be.true();
             expect(response.header.calledWith('content-type')).to.be.true();
-
-            done();
         });
     });
 });
